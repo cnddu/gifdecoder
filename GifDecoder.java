@@ -32,6 +32,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.io.File;
 
 /**
  * Reads frame data from a GIF image source and decodes it into individual frames
@@ -188,6 +189,23 @@ public class GifDecoder {
         return frameCount;
     }
 
+    public int[] getFrameDurations() {
+        int[] fdelays = new int[frameCount];
+        for (int ii = 0; ii < frameCount; ii++) {
+            fdelays[ii] = frames.get(ii).delay;
+        }
+        return fdelays;
+    }
+
+    public ArrayList<int[]> getColorList() {
+        ArrayList<int[]> fcl = new ArrayList<int[]>();
+        for (int ii = 0; ii < frameCount; ii++) {
+            fcl.add(frames.get(ii).lct);
+        }
+        return fcl;
+    }
+
+
     /**
      * Gets the current index of the animation frame, or -1 if animation hasn't not yet started
      *
@@ -262,7 +280,7 @@ public class GifDecoder {
                 int capacity = (contentLength > 0) ? (contentLength + 4096) : 4096;
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream(capacity);
                 int nRead;
-                byte[] data = new byte[16384];
+                byte[] data = new byte[10*16*1024];
                 while ((nRead = is.read(data, 0, data.length)) != -1) {
                     buffer.write(data, 0, nRead);
                 }
@@ -311,6 +329,16 @@ public class GifDecoder {
         }
 
         return status;
+    }
+
+    public int getWidth() {
+        Log.w(TAG, "gif width: "+frames.get(0).iw);
+        return frames.get(0).iw;
+    }
+
+    public int getHeight() {
+        Log.w(TAG, "gif height: "+frames.get(0).ih);
+        return frames.get(0).ih;
     }
 
     /**
@@ -759,8 +787,8 @@ public class GifDecoder {
         mainScratch = new int[width * height];
         copyScratch = new int[width * height];
 
-        previousImage = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        currentImage = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        previousImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        currentImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     }
 
     /**
@@ -795,3 +823,4 @@ public class GifDecoder {
         } while ((blockSize > 0) && !err());
     }
 }
+
